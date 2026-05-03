@@ -4,6 +4,10 @@
 
 This is an advanced Knowledge Base article duplicate detection system powered by **Jina AI embeddings** and **AI reranking**. The system provides a 16x improvement in context understanding compared to traditional models, delivering superior semantic search and duplicate detection capabilities.
 
+## Summary
+
+This project provides a Streamlit workflow for finding likely duplicate or related knowledge-base articles. It combines Jina AI embeddings, Elasticsearch hybrid search, optional cross-encoder reranking, HDBSCAN clustering, and UMAP visualization. The repository includes Docker Compose support for local checks, including an optional single-node Elasticsearch service with a 4 GB JVM heap. Private data exports, notebooks, archives, and `.env` files are intentionally excluded from git and Docker image builds.
+
 ### Key Features
 
 - 🚀 **Jina AI v3 Embeddings**: 8,192 token context window (16x improvement over e5-large-v2)
