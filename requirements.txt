@@ -1,0 +1,27 @@
+# Core Dependencies
+streamlit>=1.28.0
+pandas>=1.5.0
+numpy>=1.24.0
+
+# Elasticsearch
+elasticsearch>=8.10.0
+eland>=8.10.0
+
+# Machine Learning & Embeddings
+sentence-transformers>=2.2.0
+torch>=2.0.0
+transformers>=4.30.0
+
+# Clustering & Visualization
+scikit-learn>=1.3.0
+hdbscan>=0.8.33
+umap-learn>=0.5.3
+plotly>=5.0.0
+
+# Utilities
+python-dotenv>=1.0.0
+tqdm>=4.65.0
+requests>=2.31.0
+
+# Optional: Performance optimizations
+# accelerate>=0.20.0  # Uncomment for faster model loading
