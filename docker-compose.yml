@@ -11,7 +11,35 @@ services:
     volumes:
       - ./data:/app/data:ro
       - model-cache:/app/.cache
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+        required: false
     restart: unless-stopped
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.19.6
+    profiles:
+      - elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms4g -Xmx4g
+      - bootstrap.memory_lock=true
+    ports:
+      - "9200:9200"
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    mem_limit: 5g
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
 
   tests:
     build:
@@ -24,4 +52,5 @@ services:
       - test
 
 volumes:
+  es-data:
   model-cache:

@@ -1,6 +1,7 @@
 # src/config.py
 
 import os
+from urllib.parse import urlparse
 
 try:
     from dotenv import load_dotenv
@@ -39,5 +40,7 @@ def validate_elasticsearch_config() -> None:
     """Validate connection settings before creating an Elasticsearch client."""
     if not ES_URL and not ES_CLOUD_ID:
         raise ValueError("Either ES_URL or ES_CLOUD_ID environment variable is required")
+    if ES_URL and urlparse(ES_URL).hostname in {"localhost", "127.0.0.1", "elasticsearch"}:
+        return
     if not ES_API_KEY and not (ES_USER and ES_PASSWORD):
         raise ValueError("Either ES_API_KEY or ES_USER/ES_PASSWORD must be provided")

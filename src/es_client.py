@@ -38,7 +38,7 @@ def get_es_client():
 
         if ES_API_KEY:
             client_kwargs["api_key"] = ES_API_KEY
-        else:
+        elif ES_USER and ES_PASSWORD:
             client_kwargs["basic_auth"] = (ES_USER, ES_PASSWORD)
 
         if ES_CLOUD_ID:
