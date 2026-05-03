@@ -24,6 +24,9 @@ from src.hits_analysis import analyze_knn_hits
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logging.getLogger('elasticsearch').setLevel(logging.WARNING)
 
+# --- Main App Logic ---
+st.set_page_config(page_title="KB Article Duplicate Detection with Jina AI", layout="wide")
+
 # --- Initialize Clients ---
 @st.cache_resource
 def initialize_models():
@@ -40,14 +43,20 @@ def initialize_models():
     
     return es_client, jina_model, search_pipeline
 
-es_client, jina_model, search_pipeline = initialize_models()
-
-# --- Main App Logic ---
-st.set_page_config(page_title="KB Article Duplicate Detection with Jina AI", layout="wide")
+try:
+    es_client, jina_model, search_pipeline = initialize_models()
+    initialization_error = None
+except Exception as exc:
+    es_client, jina_model, search_pipeline = None, None, None
+    initialization_error = exc
 
 # Header with improved branding
 st.title("🚀 KB Article Duplicate Detection with Jina AI")
 st.markdown("**Enhanced with 16x larger context window and AI reranking for superior precision**")
+
+if initialization_error:
+    st.error(f"Application initialization failed: {initialization_error}")
+    st.info("Check your `.env` values, Elasticsearch connectivity, and model dependencies.")
 
 # --- User Input ---
 user_query = st.text_input("Enter your search query:", placeholder="e.g., How to configure Elasticsearch cluster settings")
@@ -330,4 +339,3 @@ with st.expander("💡 Performance Tips"):
     - **Adjust Boosts**: Fine-tune text vs semantic similarity balance
     - **Context Window**: Jina AI now understands 16x more content per document!
     """)
-

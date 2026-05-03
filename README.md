@@ -95,6 +95,20 @@ streamlit run run_pipeline.py
 
 Navigate to `http://localhost:8501` to access the web interface.
 
+### 4. Run with Docker
+
+Docker is the easiest way to check the app locally with all native ML dependencies installed:
+
+```bash
+cp .env.template .env
+# Edit .env with your Elasticsearch settings
+docker compose up --build
+```
+
+Then open `http://localhost:8501`.
+
+See [docs/docker.md](docs/docker.md) for Docker details, data mounting, test commands, and data-safety notes.
+
 ## Usage Guide
 
 ### Basic Search
@@ -116,6 +130,8 @@ Navigate to `http://localhost:8501` to access the web interface.
 - View semantic clusters of search results
 - Identify potential duplicates and related content groups
 - Explore 2D UMAP visualization of article relationships
+
+HDBSCAN clustering is documented in [docs/hdbscan.md](docs/hdbscan.md), including installation requirements, fallback behavior, label meanings, and tuning guidance.
 
 #### Performance Tuning
 - Adjust reranking candidate count for speed vs quality tradeoff
@@ -176,6 +192,9 @@ Run the test suite:
 ```bash
 # Unit tests
 pytest tests/
+
+# Dockerized unit tests
+docker compose --profile test run --rm tests
 
 # Integration test for Jina AI search
 python test_jina_search.py
