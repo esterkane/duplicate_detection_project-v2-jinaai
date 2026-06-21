@@ -142,6 +142,36 @@ HDBSCAN clustering is documented in [docs/hdbscan.md](docs/hdbscan.md), includin
 - Modify search boosts for different content types
 - Use clustering parameters for different granularity levels
 
+## Agent Access (MCP)
+
+The core can be driven by an MCP client (Claude Code, Cursor, a custom agent)
+through a small **read-only** [Model Context Protocol](https://modelcontextprotocol.io)
+server. It exposes three tools as thin adapters over existing `src/` functions —
+no business logic in the MCP layer, and ingestion is intentionally not exposed:
+
+- `hybrid_search(query, filters?, k=10)` — hybrid kNN + keyword (RRF) search.
+- `find_duplicates(text?, chunk_id?, threshold=0.9)` — near-duplicate articles
+  for a seed text or article, using the project's `detect_duplicates` helper.
+- `get_chunk(chunk_id)` — fetch a single article by its `article_id`.
+
+Run it from the repository root (needs a valid `.env` and a live Elasticsearch
+index; the Jina model loads lazily on the first call):
+
+```bash
+python -m src.mcp.server          # MCP_TRANSPORT=stdio (default) or http
+```
+
+Tools return structured results and structured, trace-free errors
+(`{isError, errorCategory, isRetryable, message, details}`). The unit tests run
+entirely against fakes (no live Elasticsearch, no Jina API):
+
+```bash
+pytest tests/test_mcp_tools.py
+```
+
+See [docs/mcp.md](docs/mcp.md) for the full tool reference, error contract,
+example calls/outputs, and client registration.
+
 ## Configuration
 
 Key settings in `src/config.py`:
