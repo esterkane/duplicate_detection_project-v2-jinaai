@@ -25,6 +25,9 @@ pytest tests/
 # Integration smoke test (requires a live Elasticsearch + Jina model)
 python test_jina_search.py
 
+# Read-only MCP server (agent access; needs .env + live ES, Jina loads lazily)
+python -m src.mcp.server          # MCP_TRANSPORT=stdio (default) or http
+
 # Demo
 python examples/jina_comparison_demo.py
 ```
@@ -62,6 +65,10 @@ See `docs/docker.md` and `docs/hdbscan.md` for details.
    plus a dependency-free string-similarity `detect_duplicates` helper.
 5. `run_pipeline.py` is the Streamlit front end; `src/visualization.py` renders UMAP
    2D projections of the clusters; `src/config.py` loads all settings from env/`.env`.
+6. `src/mcp/` is a read-only [MCP](https://modelcontextprotocol.io) server (FastMCP,
+   `python -m src.mcp.server`) exposing `hybrid_search` / `find_duplicates` /
+   `get_chunk` as THIN adapters over the existing `src/` functions for agent access.
+   See `docs/mcp.md`.
 
 ## Invariants I must never break
 
@@ -94,6 +101,15 @@ See `docs/docker.md` and `docs/hdbscan.md` for details.
    reason, and validate against `detect_duplicates`'s `0 <= threshold <= 1` guard.
    Keep embeddings reproducible: same model/task (`jina-embeddings-v3`,
    `text-matching`) and dimensions (`1024`) for ingest and query.
+7. **MCP layer stays thin and read-only.** `src/mcp/` tools are thin adapters
+   over existing `src/` functions — no business logic, no reimplementation. They
+   are READ-ONLY: never expose ingestion or any mutation as a tool. There is no
+   mutation path without `MCP_ALLOW_MUTATIONS` (default false; reserved, currently
+   unused). Tools validate inputs (pydantic) and always return structured results
+   or structured, trace-free errors (`{isError, errorCategory, isRetryable,
+   message, details}`) via `errors.guard` — never a raw ES response or stack
+   trace. `tools.py` must stay FastMCP/HTTP-free so its `*_impl` functions remain
+   unit-testable with fakes (`tests/test_mcp_tools.py`).
 
 ## Definition of done
 
@@ -104,3 +120,5 @@ See `docs/docker.md` and `docs/hdbscan.md` for details.
       thresholds give the same retrieval/cluster output; fallbacks still hold.
 - [ ] README / `docs/` updated when behavior, commands, or config change.
 - [ ] No secrets or private KB data added; new config documented in `.env.template`.
+- [ ] MCP tools (`src/mcp/`) stay thin + read-only with structured errors, have
+      matching fake-backed tests, and expose no ingestion/mutation path.

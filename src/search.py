@@ -66,6 +66,37 @@ def knn_search(
         logger.error(f"Error during hybrid search: {e}", exc_info=True)
         return []
 
+def get_article_by_id(
+    es_client: Any,
+    article_id: str,
+    index_name: str,
+    embedding_field: str = EMBEDDING_FIELD,
+    include_embedding: bool = False,
+) -> Dict[str, Any]:
+    """
+    Fetch a single KB article (chunk) by its ``article_id`` term.
+
+    Returns the raw Elasticsearch hit (``{"_id", "_score", "_source", ...}``) for
+    the first match, or ``None`` if no document with that ``article_id`` exists.
+    Used by both interactive look-ups and the read-only MCP ``get_chunk`` tool, so
+    the fetch logic lives in one place. Errors propagate to the caller (the MCP
+    layer classifies transient backend errors via its ``guard``).
+    """
+    source_fields = ["article_id", "content_title", "content_summary", "metadata_products", "content_body"]
+    if include_embedding:
+        source_fields.append(embedding_field or EMBEDDING_FIELD)
+
+    search_body = {
+        "query": {"term": {"article_id": article_id}},
+        "_source": source_fields,
+        "size": 1,
+    }
+
+    response = es_client.search(index=index_name, body=search_body, request_timeout=30)
+    hits = response.get("hits", {}).get("hits", [])
+    return hits[0] if hits else None
+
+
 def run_search_and_visualize(es_client, query_vector, user_query, index_name, k, num_candidates):
     print("Running hybrid k-NN and text search...")
     hits = knn_search(
